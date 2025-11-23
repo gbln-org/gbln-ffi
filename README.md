@@ -9,7 +9,7 @@
 
 **This is a C-compatible interface layer for the GBLN parser, implemented in Rust.**
 
-### Why "gbln-c" if it's Rust code?
+### Why "gbln-ffi" if it's Rust code?
 
 - **What it does**: Exports a **C-compatible API** (C ABI) that any language can use
 - **How it works**: Rust code with `extern "C"` functions
@@ -41,7 +41,7 @@ The core parser is already written in Rust ([gbln-rust](https://github.com/gbln-
          │ dependency
          ▼
 ┌─────────────────┐
-│    gbln-c       │  ← This repository (Rust with C FFI)
+│    gbln-ffi     │  ← This repository (Rust with C FFI)
 │   (this repo)   │     • extern "C" functions
 │                 │     • cbindgen header generation
 └────────┬────────┘
@@ -296,7 +296,7 @@ Expected: **0 bytes lost, 0 errors**
 ## Project Structure
 
 ```
-core/ffi/ (gbln-c repository)
+core/ffi/ (gbln-ffi repository)
 ├── Cargo.toml              # Rust build configuration
 ├── build.rs                # cbindgen header generation
 ├── src/
