@@ -1,0 +1,18 @@
+[package]
+name = "gbln-ffi"
+version = "0.1.0"
+edition = "2021"
+authors = ["Vivian Voss <ask@vvoss.dev>"]
+description = "C FFI bindings for GBLN parser"
+repository = "https://github.com/gbln-org/gbln-ffi"
+license = "Apache-2.0"
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+name = "gbln"
+
+[dependencies]
+gbln = { path = "../rust" }
+
+[build-dependencies]
+cbindgen = "0.27"
