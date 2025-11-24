@@ -26,6 +26,7 @@ typedef enum GblnErrorCode {
     ErrorInvalidTypeHint = 9,
     ErrorDuplicateKey = 10,
     ErrorNullPointer = 11,
+    ErrorIo = 12,
 } GblnErrorCode;
 
 /**

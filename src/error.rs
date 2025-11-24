@@ -19,6 +19,7 @@ pub enum GblnErrorCode {
     ErrorInvalidTypeHint = 9,
     ErrorDuplicateKey = 10,
     ErrorNullPointer = 11,
+    ErrorIo = 12,
 }
 
 // Thread-local error storage
@@ -54,5 +55,6 @@ pub fn map_error_kind(kind: &ErrorKind) -> GblnErrorCode {
         ErrorKind::TypeMismatch => GblnErrorCode::ErrorTypeMismatch,
         ErrorKind::InvalidTypeHint => GblnErrorCode::ErrorInvalidTypeHint,
         ErrorKind::DuplicateKey => GblnErrorCode::ErrorDuplicateKey,
+        ErrorKind::IoError => GblnErrorCode::ErrorIo,
     }
 }
