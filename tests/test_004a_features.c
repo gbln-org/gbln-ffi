@@ -20,7 +20,7 @@ void test_optional_types_single_values() {
     
     // Should infer as string
     bool ok;
-    const const struct GblnValue* obj_val = gbln_object_get(value, "name");
+    const struct GblnValue* obj_val = gbln_object_get(value, "name");
     assert(obj_val != NULL);
     char* name = gbln_value_as_string(obj_val, &ok);
     assert(ok == true);
