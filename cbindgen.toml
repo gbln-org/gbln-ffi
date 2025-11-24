@@ -1,0 +1,15 @@
+language = "C"
+style = "both"
+
+[export]
+include = ["GblnValue", "GblnErrorCode"]
+
+[export.rename]
+
+[struct]
+# Make GblnValue completely opaque
+derive_eq = false
+derive_neq = false
+
+[[opaque_types]]
+name = "GblnValue"

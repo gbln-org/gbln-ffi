@@ -119,10 +119,13 @@ cargo build --release --target x86_64-pc-windows-gnu
 // Parse GBLN string
 GblnErrorCode gbln_parse(const char* input, GblnValue** out_value);
 
+// Parse from file
+GblnErrorCode gbln_parse_file(const char* path, GblnValue** out_value);
+
 // Free value
 void gbln_value_free(GblnValue* value);
 
-// Serialize (compact)
+// Serialize (MINI GBLN - default)
 char* gbln_to_string(const GblnValue* value);
 
 // Serialize (pretty-printed)
@@ -130,6 +133,41 @@ char* gbln_to_string_pretty(const GblnValue* value);
 
 // Free string
 void gbln_string_free(char* str);
+```
+
+### I/O Format Functions
+
+```c
+// Configuration for I/O format
+typedef struct {
+    bool mini_mode;           // Enable MINI GBLN (no structural whitespace)
+    bool compress;            // Enable XZ compression
+    uint8_t compression_level; // XZ compression level (0-9)
+    size_t indent;            // Indentation width for pretty printing
+    bool strip_comments;      // Strip comments in I/O format
+} GblnConfig;
+
+// Create default configuration (MINI + compression)
+GblnConfig gbln_config_default(void);
+
+// Create development configuration (pretty, no compression)
+GblnConfig gbln_config_development(void);
+
+// Create I/O format configuration (MINI + XZ compression)
+GblnConfig gbln_config_io_format(void);
+
+// Write I/O format to file
+GblnErrorCode gbln_write_io(
+    const GblnValue* value,
+    const char* path,
+    const GblnConfig* config
+);
+
+// Read I/O format from file
+GblnErrorCode gbln_read_io(
+    const char* path,
+    GblnValue** out_value
+);
 ```
 
 ### Error Handling
@@ -180,6 +218,8 @@ const GblnValue* gbln_array_get(const GblnValue* value, size_t index);
 
 ## Example Usage (C)
 
+### Basic Parsing
+
 ```c
 #include "gbln.h"
 #include <stdio.h>
@@ -197,7 +237,8 @@ int main() {
     
     // Access data
     bool ok;
-    const GblnValue* id = gbln_object_get(value, "id");
+    const GblnValue* user = gbln_object_get(value, "user");
+    const GblnValue* id = gbln_object_get(user, "id");
     uint32_t id_val = gbln_value_as_u32(id, &ok);
     
     if (ok) {
@@ -216,10 +257,82 @@ int main() {
 }
 ```
 
+### I/O Format Workflow
+
+```c
+#include "gbln.h"
+#include <stdio.h>
+
+int main() {
+    // 1. DEVELOPMENT: Parse source file
+    GblnValue* value = NULL;
+    GblnErrorCode err = gbln_parse_file("config.gbln", &value);
+    if (err != GBLN_OK) {
+        printf("Error: %s\n", gbln_last_error_message());
+        return 1;
+    }
+    printf("✓ Parsed config.gbln\n");
+    
+    // 2. PRODUCTION: Generate I/O format
+    GblnConfig io_config = gbln_config_io_format();
+    err = gbln_write_io(value, "config.io.gbln.xz", &io_config);
+    if (err != GBLN_OK) {
+        printf("Error writing I/O: %s\n", gbln_last_error_message());
+        gbln_value_free(value);
+        return 1;
+    }
+    printf("✓ Generated config.io.gbln.xz (MINI + XZ compressed)\n");
+    
+    // 3. Optional: Generate debug format (MINI only, no compression)
+    GblnConfig debug_config = gbln_config_default();
+    debug_config.compress = false;
+    err = gbln_write_io(value, "config.io.gbln", &debug_config);
+    if (err == GBLN_OK) {
+        printf("✓ Generated config.io.gbln (MINI, uncompressed)\n");
+    }
+    
+    gbln_value_free(value);
+    
+    // 4. APPLICATION: Load from I/O format
+    GblnValue* loaded = NULL;
+    err = gbln_read_io("config.io.gbln.xz", &loaded);
+    if (err != GBLN_OK) {
+        printf("Error reading I/O: %s\n", gbln_last_error_message());
+        return 1;
+    }
+    printf("✓ Loaded from config.io.gbln.xz\n");
+    
+    // 5. Use the configuration
+    bool ok;
+    const GblnValue* app = gbln_object_get(loaded, "app");
+    const GblnValue* server = gbln_object_get(app, "server");
+    const GblnValue* port = gbln_object_get(server, "port");
+    uint16_t port_val = gbln_value_as_u16(port, &ok);
+    
+    if (ok) {
+        printf("✓ Server will run on port %u\n", port_val);
+    }
+    
+    // Cleanup
+    gbln_value_free(loaded);
+    
+    return 0;
+}
+```
+
 **Compile:**
 ```bash
 gcc -o example example.c -L./target/release -lgbln
 LD_LIBRARY_PATH=./target/release ./example
+```
+
+**Output:**
+```
+✓ Parsed config.gbln
+✓ Generated config.io.gbln.xz (MINI + XZ compressed)
+✓ Generated config.io.gbln (MINI, uncompressed)
+✓ Loaded from config.io.gbln.xz
+✓ Server will run on port 8080
 ```
 
 ---
@@ -229,13 +342,35 @@ LD_LIBRARY_PATH=./target/release ./example
 ### Python (ctypes)
 
 ```python
-from ctypes import CDLL, c_char_p, POINTER, c_void_p
+from ctypes import CDLL, c_char_p, POINTER, c_void_p, Structure, c_bool, c_uint8, c_size_t
 
 lib = CDLL("libgbln.so")
+
+# Basic parsing
 lib.gbln_parse.argtypes = [c_char_p, POINTER(c_void_p)]
 lib.gbln_parse.restype = c_int
 
-# Use the library...
+# I/O format configuration
+class GblnConfig(Structure):
+    _fields_ = [
+        ("mini_mode", c_bool),
+        ("compress", c_bool),
+        ("compression_level", c_uint8),
+        ("indent", c_size_t),
+        ("strip_comments", c_bool),
+    ]
+
+lib.gbln_config_io_format.restype = GblnConfig
+lib.gbln_write_io.argtypes = [c_void_p, c_char_p, POINTER(GblnConfig)]
+lib.gbln_write_io.restype = c_int
+lib.gbln_read_io.argtypes = [c_char_p, POINTER(c_void_p)]
+lib.gbln_read_io.restype = c_int
+
+# Example usage
+config = lib.gbln_config_io_format()
+value = c_void_p()
+lib.gbln_parse_file(b"config.gbln", byref(value))
+lib.gbln_write_io(value, b"config.io.gbln.xz", byref(config))
 ```
 
 ### Go (cgo)
@@ -244,14 +379,42 @@ lib.gbln_parse.restype = c_int
 // #cgo LDFLAGS: -lgbln
 // #include "gbln.h"
 import "C"
+import "unsafe"
 
-func Parse(input string) {
+func Parse(input string) (*C.GblnValue, error) {
     cInput := C.CString(input)
     defer C.free(unsafe.Pointer(cInput))
     
     var value *C.GblnValue
     err := C.gbln_parse(cInput, &value)
-    // ...
+    if err != C.GBLN_OK {
+        return nil, errors.New(C.GoString(C.gbln_last_error_message()))
+    }
+    return value, nil
+}
+
+func WriteIO(value *C.GblnValue, path string) error {
+    cPath := C.CString(path)
+    defer C.free(unsafe.Pointer(cPath))
+    
+    config := C.gbln_config_io_format()
+    err := C.gbln_write_io(value, cPath, &config)
+    if err != C.GBLN_OK {
+        return errors.New(C.GoString(C.gbln_last_error_message()))
+    }
+    return nil
+}
+
+func ReadIO(path string) (*C.GblnValue, error) {
+    cPath := C.CString(path)
+    defer C.free(unsafe.Pointer(cPath))
+    
+    var value *C.GblnValue
+    err := C.gbln_read_io(cPath, &value)
+    if err != C.GBLN_OK {
+        return nil, errors.New(C.GoString(C.gbln_last_error_message()))
+    }
+    return value, nil
 }
 ```
 
@@ -260,11 +423,48 @@ func Parse(input string) {
 ```swift
 import Foundation
 
-let lib = dlopen("libgbln.dylib", RTLD_NOW)
-let parse = unsafeBitCast(
-    dlsym(lib, "gbln_parse"),
-    to: (@convention(c) (UnsafePointer<CChar>, UnsafeMutablePointer<OpaquePointer?>) -> Int32).self
+typealias GblnConfig = (
+    mini_mode: Bool,
+    compress: Bool,
+    compression_level: UInt8,
+    indent: Int,
+    strip_comments: Bool
 )
+
+class GBLN {
+    let lib: UnsafeMutableRawPointer
+    
+    init() {
+        lib = dlopen("libgbln.dylib", RTLD_NOW)!
+    }
+    
+    func writeIO(value: OpaquePointer, path: String, config: GblnConfig) -> Bool {
+        let writeIO = unsafeBitCast(
+            dlsym(lib, "gbln_write_io"),
+            to: (@convention(c) (OpaquePointer, UnsafePointer<CChar>, UnsafePointer<GblnConfig>) -> Int32).self
+        )
+        
+        return path.withCString { cPath in
+            var cfg = config
+            return withUnsafePointer(to: &cfg) { configPtr in
+                writeIO(value, cPath, configPtr) == 0
+            }
+        }
+    }
+    
+    func readIO(path: String) -> OpaquePointer? {
+        let readIO = unsafeBitCast(
+            dlsym(lib, "gbln_read_io"),
+            to: (@convention(c) (UnsafePointer<CChar>, UnsafeMutablePointer<OpaquePointer?>) -> Int32).self
+        )
+        
+        var value: OpaquePointer?
+        path.withCString { cPath in
+            _ = readIO(cPath, &value)
+        }
+        return value
+    }
+}
 ```
 
 **See individual binding repositories for complete examples.**
@@ -302,14 +502,18 @@ core/ffi/ (gbln-ffi repository)
 ├── src/
 │   ├── lib.rs              # Main FFI exports
 │   ├── types.rs            # C-compatible types
+│   ├── config.rs           # GblnConfig FFI wrapper
 │   ├── error.rs            # Error handling
+│   ├── io.rs               # I/O format read/write
 │   └── accessors.rs        # Value accessor functions
 ├── include/
 │   └── gbln.h              # Generated C header (auto)
 ├── tests/
-│   └── ffi_test.c          # C integration tests
+│   ├── ffi_test.c          # C integration tests
+│   └── io_test.c           # I/O format tests
 ├── examples/
-│   └── example.c           # Example C usage
+│   ├── example.c           # Basic parsing example
+│   └── io_example.c        # I/O format workflow example
 └── README.md               # This file
 ```
 
