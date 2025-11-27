@@ -30,6 +30,30 @@ typedef enum GblnErrorCode {
 } GblnErrorCode;
 
 /**
+ * Value type enum for C FFI
+ *
+ * Represents the type of a GBLN value.
+ * This allows C code to query the type without trying every accessor.
+ */
+typedef enum GblnValueType {
+    I8 = 0,
+    I16 = 1,
+    I32 = 2,
+    I64 = 3,
+    U8 = 4,
+    U16 = 5,
+    U32 = 6,
+    U64 = 7,
+    F32 = 8,
+    F64 = 9,
+    Str = 10,
+    Bool = 11,
+    Null = 12,
+    Object = 13,
+    Array = 14,
+} GblnValueType;
+
+/**
  * Opaque pointer to a GBLN value
  *
  * This is a C-compatible wrapper around Rust's Value type.
@@ -220,5 +244,171 @@ bool gbln_value_as_bool(const struct GblnValue *value, bool *ok);
  * Check if value is null
  */
 bool gbln_value_is_null(const struct GblnValue *value);
+
+/**
+ * Get value type
+ *
+ * Returns the type of a GBLN value.
+ * Eliminates need to try every as_* function.
+ *
+ * # Safety
+ * - `value` must be a valid GblnValue pointer
+ */
+enum GblnValueType gbln_value_type(const struct GblnValue *value);
+
+/**
+ * Get number of fields in object
+ *
+ * Returns 0 if value is not an object.
+ *
+ * # Safety
+ * - `value` must be a valid GblnValue pointer
+ */
+uintptr_t gbln_object_len(const struct GblnValue *value);
+
+/**
+ * Get object keys
+ *
+ * Returns array of null-terminated C strings.
+ * Caller must free with `gbln_keys_free()`.
+ *
+ * Returns NULL if value is not an object.
+ *
+ * # Safety
+ * - `value` must be a valid GblnValue pointer
+ * - `out_count` must be a valid pointer to store the count
+ * - Caller must free returned array with `gbln_keys_free()`
+ */
+char **gbln_object_keys(const struct GblnValue *value, uintptr_t *out_count);
+
+/**
+ * Free keys array
+ *
+ * Frees array returned by `gbln_object_keys()`.
+ *
+ * # Safety
+ * - `keys` must be a valid pointer returned from `gbln_object_keys()`
+ * - `count` must be the count returned from `gbln_object_keys()`
+ * - Must not be called twice on the same pointer
+ */
+void gbln_keys_free(char **keys, uintptr_t count);
+
+/**
+ * Create i8 value
+ */
+struct GblnValue *gbln_value_new_i8(int8_t value);
+
+/**
+ * Create i16 value
+ */
+struct GblnValue *gbln_value_new_i16(int16_t value);
+
+/**
+ * Create i32 value
+ */
+struct GblnValue *gbln_value_new_i32(int32_t value);
+
+/**
+ * Create i64 value
+ */
+struct GblnValue *gbln_value_new_i64(int64_t value);
+
+/**
+ * Create u8 value
+ */
+struct GblnValue *gbln_value_new_u8(uint8_t value);
+
+/**
+ * Create u16 value
+ */
+struct GblnValue *gbln_value_new_u16(uint16_t value);
+
+/**
+ * Create u32 value
+ */
+struct GblnValue *gbln_value_new_u32(uint32_t value);
+
+/**
+ * Create u64 value
+ */
+struct GblnValue *gbln_value_new_u64(uint64_t value);
+
+/**
+ * Create f32 value
+ */
+struct GblnValue *gbln_value_new_f32(float value);
+
+/**
+ * Create f64 value
+ */
+struct GblnValue *gbln_value_new_f64(double value);
+
+/**
+ * Create string value
+ *
+ * # Args
+ * - value: null-terminated UTF-8 string
+ * - max_len: maximum string length (for type hint)
+ *
+ * # Returns
+ * - GblnValue pointer on success
+ * - NULL if string exceeds max_len or invalid UTF-8
+ *
+ * # Safety
+ * - `value` must be a valid null-terminated UTF-8 string
+ */
+struct GblnValue *gbln_value_new_str(const char *value, uintptr_t max_len);
+
+/**
+ * Create boolean value
+ */
+struct GblnValue *gbln_value_new_bool(bool value);
+
+/**
+ * Create null value
+ */
+struct GblnValue *gbln_value_new_null(void);
+
+/**
+ * Create empty object
+ */
+struct GblnValue *gbln_value_new_object(void);
+
+/**
+ * Insert field into object
+ *
+ * # Safety
+ * - `object` must be a GblnValue of type Object
+ * - `key` must be a valid null-terminated UTF-8 string
+ * - `value` ownership is transferred to the object
+ *
+ * # Returns
+ * - GBLN_OK on success
+ * - GBLN_ERROR_DUPLICATE_KEY if key already exists
+ * - GBLN_ERROR_TYPE_MISMATCH if object is not an Object type
+ * - GBLN_ERROR_NULL_POINTER if any pointer is null
+ */
+enum GblnErrorCode gbln_object_insert(struct GblnValue *object,
+                                      const char *key,
+                                      struct GblnValue *value);
+
+/**
+ * Create empty array
+ */
+struct GblnValue *gbln_value_new_array(void);
+
+/**
+ * Push value to array
+ *
+ * # Safety
+ * - `array` must be a GblnValue of type Array
+ * - `value` ownership is transferred to the array
+ *
+ * # Returns
+ * - GBLN_OK on success
+ * - GBLN_ERROR_TYPE_MISMATCH if array is not an Array type
+ * - GBLN_ERROR_NULL_POINTER if any pointer is null
+ */
+enum GblnErrorCode gbln_array_push(struct GblnValue *array, struct GblnValue *value);
 
 #endif  /* GBLN_H */

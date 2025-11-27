@@ -5,10 +5,11 @@ use std::ptr;
 
 mod accessors;
 mod error;
+mod extensions;
 mod types;
 
 pub use error::{get_last_error, set_last_error, GblnErrorCode};
-pub use types::GblnValue;
+pub use types::{GblnValue, GblnValueType};
 
 /// Parse GBLN string into a value
 ///
