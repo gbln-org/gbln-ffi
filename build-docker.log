@@ -1,0 +1,51 @@
+🔨 Building GBLN C FFI using Docker...
+
+📦 FreeBSD
+  → FreeBSD x86_64...
+
+[96mNote[0m: cross expects the toolchain to be a rustup installed toolchain
+[96mSuggestion[0m: if you're using a custom toolchain try setting `CROSS_CUSTOM_TOOLCHAIN=1` or install rust via rustup
+    ✅ Success
+  → FreeBSD ARM64...
+
+[96mNote[0m: cross expects the toolchain to be a rustup installed toolchain
+[96mSuggestion[0m: if you're using a custom toolchain try setting `CROSS_CUSTOM_TOOLCHAIN=1` or install rust via rustup
+    ✅ Success
+
+📦 Linux
+  → Linux x86_64...
+
+[96mNote[0m: cross expects the toolchain to be a rustup installed toolchain
+[96mSuggestion[0m: if you're using a custom toolchain try setting `CROSS_CUSTOM_TOOLCHAIN=1` or install rust via rustup
+    ✅ Success
+  → Linux ARM64...
+
+[96mNote[0m: cross expects the toolchain to be a rustup installed toolchain
+[96mSuggestion[0m: if you're using a custom toolchain try setting `CROSS_CUSTOM_TOOLCHAIN=1` or install rust via rustup
+    ✅ Success
+
+📦 Windows
+  → Windows x86_64...
+
+[96mNote[0m: cross expects the toolchain to be a rustup installed toolchain
+[96mSuggestion[0m: if you're using a custom toolchain try setting `CROSS_CUSTOM_TOOLCHAIN=1` or install rust via rustup
+    ✅ Success
+
+📦 Android
+  → Android ARM64...
+
+[96mNote[0m: cross expects the toolchain to be a rustup installed toolchain
+[96mSuggestion[0m: if you're using a custom toolchain try setting `CROSS_CUSTOM_TOOLCHAIN=1` or install rust via rustup
+    ✅ Success
+  → Android x86_64...
+
+[96mNote[0m: cross expects the toolchain to be a rustup installed toolchain
+[96mSuggestion[0m: if you're using a custom toolchain try setting `CROSS_CUSTOM_TOOLCHAIN=1` or install rust via rustup
+    ✅ Success
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Docker builds complete!
+⏱️  Total time: 0s
+
+📁 Build artifacts in target/<platform>/release/
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -1,0 +1,92 @@
+🔨 Building GBLN C FFI for all platforms...
+
+📦 Tier 1: FreeBSD
+  → FreeBSD x86_64...
+Location:
+   [35msrc/rustc.rs[0m:[35m268[0m
+
+[96mNote[0m: cross expects the toolchain to be a rustup installed toolchain
+[96mSuggestion[0m: if you're using a custom toolchain try setting `CROSS_CUSTOM_TOOLCHAIN=1` or install rust via rustup
+  → FreeBSD ARM64...
+[cross] warning: unable to get metadata for package
+[cross] note: Falling back to `cargo` on the host.
+error: no such command: `+nightly`
+
+help: invoke `cargo` through `rustup` to handle `+toolchain` directives
+
+📦 Tier 1: Linux
+  → Linux x86_64...
+Location:
+   [35msrc/rustc.rs[0m:[35m268[0m
+
+[96mNote[0m: cross expects the toolchain to be a rustup installed toolchain
+[96mSuggestion[0m: if you're using a custom toolchain try setting `CROSS_CUSTOM_TOOLCHAIN=1` or install rust via rustup
+  → Linux ARM64...
+Location:
+   [35msrc/rustc.rs[0m:[35m268[0m
+
+[96mNote[0m: cross expects the toolchain to be a rustup installed toolchain
+[96mSuggestion[0m: if you're using a custom toolchain try setting `CROSS_CUSTOM_TOOLCHAIN=1` or install rust via rustup
+
+📦 Tier 1: macOS
+  → macOS x86_64...
+  = help: consider downloading the target with `rustup target add x86_64-apple-darwin`
+
+For more information about this error, try `rustc --explain E0463`.
+error: could not compile `libc` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+  → macOS ARM64...
+   Compiling lzma-sys v0.1.20
+   Compiling gbln-ffi v0.1.0 (/Users/byvoss/Workbench/Unternehmen/ByVoss/Projekte/GBLN/core/ffi)
+   Compiling xz2 v0.1.7
+   Compiling gbln v0.1.0 (/Users/byvoss/Workbench/Unternehmen/ByVoss/Projekte/GBLN/core/rust)
+    Finished `release` profile [optimized] target(s) in 1.43s
+
+📦 Tier 1: Windows
+  → Windows x86_64...
+Location:
+   [35msrc/rustc.rs[0m:[35m268[0m
+
+[96mNote[0m: cross expects the toolchain to be a rustup installed toolchain
+[96mSuggestion[0m: if you're using a custom toolchain try setting `CROSS_CUSTOM_TOOLCHAIN=1` or install rust via rustup
+
+📦 Tier 2: Mobile
+  → iOS ARM64...
+  = help: consider downloading the target with `rustup target add aarch64-apple-ios`
+
+For more information about this error, try `rustc --explain E0463`.
+error: could not compile `libc` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+  → Android ARM64...
+Location:
+   [35msrc/rustc.rs[0m:[35m268[0m
+
+[96mNote[0m: cross expects the toolchain to be a rustup installed toolchain
+[96mSuggestion[0m: if you're using a custom toolchain try setting `CROSS_CUSTOM_TOOLCHAIN=1` or install rust via rustup
+  → Android x86_64...
+Location:
+   [35msrc/rustc.rs[0m:[35m268[0m
+
+[96mNote[0m: cross expects the toolchain to be a rustup installed toolchain
+[96mSuggestion[0m: if you're using a custom toolchain try setting `CROSS_CUSTOM_TOOLCHAIN=1` or install rust via rustup
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 Build Results (Ticket #005B - C FFI Extensions)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Platform             Status   Size      
+────────────────────────────────────────────────────
+FreeBSD x86_64       ✅                
+FreeBSD ARM64        ✅                
+Linux x86_64         ✅                
+Linux ARM64          ✅                
+macOS x86_64         ✅                
+macOS ARM64          ✅      553K      
+Windows x86_64       ✅                
+iOS ARM64            ✅                
+Android ARM64        ✅                
+Android x86_64       ✅                
+
+⏱️  Total build time: 11s
+
+✅ All platforms built successfully!
