@@ -1,6 +1,3 @@
-// Copyright (c) 2025 Vivian Burkhard Voss
-// SPDX-License-Identifier: Apache-2.0
-
 #ifndef GBLN_H
 #define GBLN_H
 
@@ -67,6 +64,13 @@ typedef enum GblnValueType {
  * Value type is not exposed in the C header.
  */
 typedef struct GblnValue GblnValue;
+
+/**
+ * Opaque wrapper for GblnConfig
+ */
+typedef struct GblnConfig {
+    RustConfig inner;
+} GblnConfig;
 
 /**
  * Parse GBLN string into a value
@@ -249,6 +253,114 @@ bool gbln_value_as_bool(const struct GblnValue *value, bool *ok);
 bool gbln_value_is_null(const struct GblnValue *value);
 
 /**
+ * Create default I/O configuration
+ *
+ * Returns configuration for production I/O format:
+ * - mini_mode: true
+ * - compress: true
+ * - compression_level: 6
+ * - indent: 2
+ * - strip_comments: true
+ *
+ * # Safety
+ * Caller must free with `gbln_config_free()`
+ */
+struct GblnConfig *gbln_config_new_io(void);
+
+/**
+ * Create default source configuration
+ *
+ * Returns configuration for human-readable source:
+ * - mini_mode: false
+ * - compress: false
+ * - compression_level: 6
+ * - indent: 2
+ * - strip_comments: false
+ *
+ * # Safety
+ * Caller must free with `gbln_config_free()`
+ */
+struct GblnConfig *gbln_config_new_source(void);
+
+/**
+ * Create custom configuration
+ *
+ * # Parameters
+ * - mini_mode: Use MINI GBLN (no whitespace)
+ * - compress: Enable XZ compression
+ * - compression_level: XZ level (0-9, where 9 is maximum)
+ * - indent: Indentation width (0 = no indent)
+ * - strip_comments: Remove comments in output
+ *
+ * # Safety
+ * Caller must free with `gbln_config_free()`
+ */
+struct GblnConfig *gbln_config_new(bool mini_mode,
+                                   bool compress,
+                                   uint8_t compression_level,
+                                   uintptr_t indent,
+                                   bool strip_comments);
+
+/**
+ * Free configuration
+ *
+ * # Safety
+ * - config must be a valid pointer from gbln_config_new_*() or NULL
+ * - Must not be called twice on the same pointer
+ */
+void gbln_config_free(struct GblnConfig *config);
+
+/**
+ * Get mini_mode setting
+ */
+bool gbln_config_get_mini_mode(const struct GblnConfig *config);
+
+/**
+ * Get compress setting
+ */
+bool gbln_config_get_compress(const struct GblnConfig *config);
+
+/**
+ * Get compression_level setting
+ */
+uint8_t gbln_config_get_compression_level(const struct GblnConfig *config);
+
+/**
+ * Get indent setting
+ */
+uintptr_t gbln_config_get_indent(const struct GblnConfig *config);
+
+/**
+ * Get strip_comments setting
+ */
+bool gbln_config_get_strip_comments(const struct GblnConfig *config);
+
+/**
+ * Set mini_mode setting
+ */
+void gbln_config_set_mini_mode(struct GblnConfig *config, bool value);
+
+/**
+ * Set compress setting
+ */
+void gbln_config_set_compress(struct GblnConfig *config, bool value);
+
+/**
+ * Set compression_level setting (0-9)
+ */
+void gbln_config_set_compression_level(struct GblnConfig *config, uint8_t value);
+
+/**
+ * Set indent setting
+ */
+void gbln_config_set_indent(struct GblnConfig *config, uintptr_t value);
+
+/**
+ * Set strip_comments setting
+ */
+void gbln_config_set_strip_comments(struct GblnConfig *config, bool value);
+
+/**
  * Get value type
  *
  * Returns the type of a GBLN value.
@@ -413,5 +525,65 @@ struct GblnValue *gbln_value_new_array(void);
  * - GBLN_ERROR_NULL_POINTER if any pointer is null
  */
 enum GblnErrorCode gbln_array_push(struct GblnValue *array, struct GblnValue *value);
+
+/**
+ * Write GBLN value to I/O format file
+ *
+ * This function serialises the value according to the configuration and writes
+ * it to the specified file. The file extension and compression are determined
+ * by the config settings.
+ *
+ * # File Extensions
+ * - `.io.gbln.xz`: MINI GBLN + XZ compression (compress=true)
+ * - `.io.gbln`: MINI GBLN without compression (compress=false, mini_mode=true)
+ * - `.gbln`: Pretty-printed source format (mini_mode=false)
+ *
+ * # Parameters
+ * - value: GBLN value to write
+ * - path: File path (null-terminated string)
+ * - config: I/O configuration (if NULL, uses default io_format())
+ *
+ * # Returns
+ * - GBLN_OK on success
+ * - GBLN_ERROR_IO on file write failure
+ * - GBLN_ERROR_NULL_POINTER if value or path is NULL
+ * - Error details via gbln_last_error_message()
+ *
+ * # Safety
+ * - value must be a valid GblnValue pointer
+ * - path must be a valid null-terminated UTF-8 string
+ * - config may be NULL (uses default)
+ */
+enum GblnErrorCode gbln_write_io(const struct GblnValue *value,
+                                 const char *path,
+                                 const struct GblnConfig *config);
+
+/**
+ * Read GBLN file from I/O format
+ *
+ * This function reads a file and automatically detects if it's XZ compressed.
+ * The content is then parsed into a GBLN value.
+ *
+ * # Auto-Detection
+ * The function checks for XZ magic bytes (FD 37 7A 58 5A 00) and automatically
+ * decompresses if detected.
+ *
+ * # Parameters
+ * - path: File path (null-terminated string)
+ * - out_value: Pointer to store the parsed value
+ *
+ * # Returns
+ * - GBLN_OK on success, with out_value set to parsed value
+ * - GBLN_ERROR_IO on file read failure
+ * - GBLN_ERROR_NULL_POINTER if path or out_value is NULL
+ * - Parse errors on invalid GBLN content
+ * - Error details via gbln_last_error_message()
+ *
+ * # Safety
+ * - path must be a valid null-terminated UTF-8 string
+ * - out_value must be a valid pointer to store the result
+ * - Caller must free returned value with gbln_value_free()
+ */
+enum GblnErrorCode gbln_read_io(const char *path, struct GblnValue **out_value);
 
 #endif  /* GBLN_H */

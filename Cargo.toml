@@ -12,7 +12,7 @@ crate-type = ["cdylib", "staticlib"]
 name = "gbln"
 
 [dependencies]
-gbln = { path = "../rust" }
+gbln = { path = "../rust", features = ["compression"] }
 
 [build-dependencies]
 cbindgen = "0.27"

@@ -7,11 +7,15 @@ use std::os::raw::c_char;
 use std::ptr;
 
 mod accessors;
+mod config;
 mod error;
 mod extensions;
+mod io;
 mod types;
 
+pub use config::GblnConfig;
 pub use error::{get_last_error, set_last_error, GblnErrorCode};
+pub use io::{gbln_read_io, gbln_write_io};
 pub use types::{GblnValue, GblnValueType};
 
 /// Parse GBLN string into a value
