@@ -1,3 +1,6 @@
+// Copyright (c) 2025 Vivian Burkhard Voss
+// SPDX-License-Identifier: Apache-2.0
+
 use crate::types::GblnValue;
 use gbln::Value;
 use std::ffi::CString;

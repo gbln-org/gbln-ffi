@@ -1,0 +1,5 @@
+[target.aarch64-unknown-freebsd]
+build-std = ["std", "core", "alloc", "proc_macro"]
+
+[target.aarch64-linux-android]
+[target.x86_64-linux-android]
