@@ -68,9 +68,7 @@ typedef struct GblnValue GblnValue;
 /**
  * Opaque wrapper for GblnConfig
  */
-typedef struct GblnConfig {
-    RustConfig inner;
-} GblnConfig;
+typedef struct GblnConfig GblnConfig;
 
 /**
  * Parse GBLN string into a value
